@@ -50,12 +50,9 @@ Thumbs.db
 # Misc
 *.pem
 
-# Documentation (optional - uncomment if you want to exclude)
+# Documentation (optional - uncomment to exclude all .md files)
 # *.md
 
 # Database
 *.db
 *.sqlite
-
-# Scripts (optional - keep migration scripts)
-# scripts/
