@@ -1,0 +1,237 @@
+import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import pool from '@/lib/db'
+import { neon } from '@neondatabase/serverless'
+import { addCredits } from '@/lib/credits'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-12-15.clover',
+})
+
+const sql = neon(process.env.DATABASE_URL!)
+
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+
+// Important: Use Node.js runtime for raw body access
+export const runtime = "nodejs"
+
+export async function POST(req: Request) {
+  const body = await req.text()
+  const headersList = await headers()
+  const signature = headersList.get('stripe-signature')
+  
+  if (!signature) {
+    console.error('❌ No stripe-signature header found')
+    return NextResponse.json({ error: 'No signature header' }, { status: 400 })
+  }
+
+  let event: Stripe.Event
+
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    console.log('✅ Webhook signature verified successfully')
+    console.log('📦 Event type:', event.type)
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err)
+    return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
+  }
+
+  try {
+    switch (event.type) {
+      // Event 1: Checkout session completed
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.userId
+
+        // Handle NEW credit purchases (improved system)
+        if (session.mode === "payment" && session.metadata?.type === "credits") {
+          await handleCreditPurchase({
+            companyId: session.metadata.companyId,
+            tokens: Number(session.metadata.tokens),
+            amountPaid: session.amount_total || 0,
+            currency: session.currency || 'myr',
+            paymentIntentId: session.payment_intent as string,
+            sessionId: session.id,
+          })
+          console.log('Credits added via new system for:', session.metadata.companyId)
+          break
+        }
+
+        // Handle OLD token purchases (legacy system - keep for backward compatibility)
+        if (userId && session.metadata?.packageId && session.metadata?.tokenAmount) {
+          const tokenAmount = parseInt(session.metadata.tokenAmount)
+          
+          // Add tokens to user balance
+          await sql`
+            INSERT INTO user_tokens (user_id, token_balance, total_purchased, total_used)
+            VALUES (${userId}, ${tokenAmount}, ${tokenAmount}, 0)
+            ON CONFLICT (user_id) DO UPDATE SET
+              token_balance = user_tokens.token_balance + ${tokenAmount},
+              total_purchased = user_tokens.total_purchased + ${tokenAmount},
+              updated_at = NOW()
+          `
+          
+          // Get updated balance
+          const balanceResult = await sql`
+            SELECT token_balance FROM user_tokens WHERE user_id = ${userId}
+          `
+          
+          // Record transaction
+          await sql`
+            INSERT INTO token_transactions (
+              user_id, 
+              transaction_type, 
+              amount, 
+              balance_after, 
+              description, 
+              reference_id
+            )
+            VALUES (
+              ${userId}, 
+              'purchase', 
+              ${tokenAmount}, 
+              ${balanceResult[0].token_balance}, 
+              'Token purchase via Stripe', 
+              ${session.id}
+            )
+          `
+          
+          console.log('Tokens added for user:', userId, 'Amount:', tokenAmount)
+        }
+        // Handle subscription purchases
+        else if (userId && session.subscription) {
+          await pool.query(
+            `UPDATE users 
+             SET subscription_tier = $2, stripe_customer_id = $3, stripe_subscription_id = $4, updated_at = NOW()
+             WHERE id = $1`,
+            [userId, 'pro', session.customer, session.subscription]
+          )
+          console.log('Subscription activated for user:', userId)
+        }
+        break
+      }
+
+      // Event 2: Payment intent succeeded (backup for credit purchases)
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        
+        // Only process credit purchases
+        if (paymentIntent.metadata?.type === "credits") {
+          await handleCreditPurchase({
+            companyId: paymentIntent.metadata.companyId,
+            tokens: Number(paymentIntent.metadata.tokens),
+            amountPaid: paymentIntent.amount_received,
+            currency: paymentIntent.currency,
+            paymentIntentId: paymentIntent.id,
+            sessionId: undefined,
+          })
+          console.log('Credits added via payment intent for:', paymentIntent.metadata.companyId)
+        }
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription
+        const customerId = subscription.customer as string
+
+        const result = await pool.query(
+          'SELECT id FROM users WHERE stripe_customer_id = $1',
+          [customerId]
+        )
+
+        if (result.rows.length > 0) {
+          const userId = result.rows[0].id
+          const tier = subscription.status === 'active' ? 'pro' : 'free'
+
+          await pool.query(
+            `UPDATE users 
+             SET subscription_tier = $2, updated_at = NOW()
+             WHERE id = $1`,
+            [userId, tier]
+          )
+          console.log('Subscription updated for user:', userId, 'to', tier)
+        }
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+        const customerId = subscription.customer as string
+
+        const result = await pool.query(
+          'SELECT id FROM users WHERE stripe_customer_id = $1',
+          [customerId]
+        )
+
+        if (result.rows.length > 0) {
+          const userId = result.rows[0].id
+
+          await pool.query(
+            `UPDATE users 
+             SET subscription_tier = $3, stripe_subscription_id = NULL, updated_at = NOW()
+             WHERE id = $1`,
+            [userId, 'free']
+          )
+          console.log('Subscription cancelled for user:', userId)
+        }
+        break
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = invoice.customer as string
+
+        const result = await pool.query(
+          'SELECT id FROM users WHERE stripe_customer_id = $1',
+          [customerId]
+        )
+
+        if (result.rows.length > 0) {
+          const userId = result.rows[0].id
+          console.log('Payment failed for user:', userId)
+        }
+        break
+      }
+    }
+
+    return NextResponse.json({ received: true })
+  } catch (error) {
+    console.error('Error processing webhook:', error)
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+  }
+}
+
+// Helper function to add credits using improved system
+async function handleCreditPurchase(data: {
+  companyId: string;
+  tokens: number;
+  amountPaid: number;
+  currency: string;
+  paymentIntentId?: string;
+  sessionId?: string;
+}) {
+  const { companyId, tokens, amountPaid, currency, paymentIntentId, sessionId } = data;
+
+  if (!companyId || !tokens || tokens <= 0) {
+    console.error("Invalid credit purchase data:", data);
+    return;
+  }
+
+  try {
+    // Call improved credits function with transaction safety and idempotency
+    await addCredits({
+      companyId,
+      tokens,
+      stripePaymentIntentId: paymentIntentId,
+      stripeCheckoutSessionId: sessionId,
+      amountPaid,
+      currency,
+      reason: "token_purchase",
+    });
+  } catch (error) {
+    console.error("Failed to add credits:", error);
+    throw error;
+  }
+}
