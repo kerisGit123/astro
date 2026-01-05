@@ -17,7 +17,7 @@
 **Files Changed:**
 - `src/components/language-switcher.tsx`
 
----
+--- -------
 
 ### 2. ✅ Share Dialog Text Overflow
 **Problem:** Share links overflowing dialog box
