@@ -312,7 +312,7 @@ export default function CreditsPage() {
                             {entry.tokens} credits
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            {entry.currency.toUpperCase()} {(entry.amount_paid / 100).toFixed(2)}
+                            {entry.currency ? `${entry.currency.toUpperCase()} ${(entry.amount_paid / 100).toFixed(2)}` : 'Free'}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">

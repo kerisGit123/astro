@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/stripe/webhook(.*)',
   '/api/clerk/webhook(.*)',
   '/api/n8n(.*)',
+  '/api/predictions/zodiac-analyze(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

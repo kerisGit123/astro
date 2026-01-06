@@ -24,37 +24,62 @@ export async function POST() {
       })
     }
 
-    // Insert user into database
-    const result = await pool.query(
-      `INSERT INTO users (
-        id,
-        email,
-        first_name,
-        last_name,
-        image_url,
-        auth_provider,
-        subscription_tier,
-        onboarding_completed,
-        created_at,
-        updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-      RETURNING *`,
-      [
-        user.id,
-        user.emailAddresses[0]?.emailAddress || "",
-        user.firstName || null,
-        user.lastName || null,
-        user.imageUrl || null,
-        "clerk",
-        "free",
-        false,
-      ]
-    )
+    // Insert user into database with transaction
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
 
-    return NextResponse.json({
-      message: "User synced successfully",
-      user: result.rows[0],
-    })
+      const result = await client.query(
+        `INSERT INTO users (
+          id,
+          email,
+          first_name,
+          last_name,
+          image_url,
+          auth_provider,
+          subscription_tier,
+          onboarding_completed,
+          created_at,
+          updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING *`,
+        [
+          user.id,
+          user.emailAddresses[0]?.emailAddress || "",
+          user.firstName || null,
+          user.lastName || null,
+          user.imageUrl || null,
+          "clerk",
+          "free",
+          false,
+        ]
+      )
+
+      // Grant 30 initial credits for new user
+      await client.query(
+        `INSERT INTO credits_ledger (company_id, tokens, reason)
+         VALUES ($1, $2, $3)`,
+        [user.id, 30, 'initial_signup_bonus']
+      )
+
+      await client.query(
+        `INSERT INTO credits_balance (company_id, balance, updated_at)
+         VALUES ($1, $2, NOW())`,
+        [user.id, 30]
+      )
+
+      await client.query('COMMIT')
+
+      return NextResponse.json({
+        message: "User synced successfully with 30 initial credits",
+        user: result.rows[0],
+      })
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
   } catch (error: unknown) {
     console.error("Error syncing user:", error)
     return NextResponse.json(

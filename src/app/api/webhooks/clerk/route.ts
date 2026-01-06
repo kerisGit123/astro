@@ -46,11 +46,16 @@ export async function POST(req: Request) {
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data
 
+    const client = await pool.connect()
     try {
-      await pool.query(
+      await client.query('BEGIN')
+
+      // Insert user
+      const userResult = await client.query(
         `INSERT INTO users (id, email, first_name, last_name, image_url, auth_provider, subscription_tier, onboarding_completed, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-         ON CONFLICT (id) DO NOTHING`,
+         ON CONFLICT (id) DO NOTHING
+         RETURNING id`,
         [
           id,
           email_addresses[0]?.email_address || '',
@@ -63,10 +68,37 @@ export async function POST(req: Request) {
         ]
       )
 
-      console.log('User created in database:', id)
+      // Only grant initial credits if user was actually inserted (not a conflict)
+      if (userResult.rows.length > 0) {
+        // Grant 30 initial credits
+        await client.query(
+          `INSERT INTO credits_ledger (company_id, tokens, reason)
+           VALUES ($1, $2, $3)`,
+          [id, 30, 'initial_signup_bonus']
+        )
+
+        await client.query(
+          `INSERT INTO credits_balance (company_id, balance, updated_at)
+           VALUES ($1, $2, NOW())
+           ON CONFLICT (company_id) 
+           DO UPDATE SET 
+             balance = credits_balance.balance + $2,
+             updated_at = NOW()`,
+          [id, 30]
+        )
+
+        console.log('User created in database with 30 initial credits:', id)
+      } else {
+        console.log('User already exists, skipping credit grant:', id)
+      }
+
+      await client.query('COMMIT')
     } catch (error) {
+      await client.query('ROLLBACK')
       console.error('Error creating user in database:', error)
       return new Response('Error creating user', { status: 500 })
+    } finally {
+      client.release()
     }
   }
 

@@ -3,6 +3,7 @@ import { Hero } from "@/components/landing/hero"
 import { WhyChoose } from "@/components/landing/why-choose"
 import { CoreFeatures } from "@/components/landing/core-features"
 import { HowItWorks } from "@/components/landing/how-it-works"
+import { QuickAnalyzer } from "@/components/landing/quick-analyzer"
 import { PricingSection } from "@/components/landing/pricing-section"
 import { AstrologySection } from "@/components/landing/astrology-section"
 import { CTASection } from "@/components/landing/cta-section"
@@ -14,6 +15,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
         <Hero />
+        <QuickAnalyzer />
         <WhyChoose />
         <CoreFeatures />
         <HowItWorks />

@@ -34,42 +34,73 @@ export default async function DashboardLayout({
         redirect("/login")
     }
 
-    // Check if user has completed onboarding
+    // Ensure user exists in database
     try {
         const result = await pool.query(
-            "SELECT onboarding_completed FROM users WHERE id = $1",
+            "SELECT id FROM users WHERE id = $1",
             [user.id]
         )
         
-        // If user doesn't exist in database, sync them first
+        // If user doesn't exist in database, create them
         if (result.rows.length === 0) {
-            // Create user in database
-            await pool.query(
-                `INSERT INTO users (
-                    id, email, first_name, last_name, image_url, 
-                    auth_provider, subscription_tier, onboarding_completed
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                ON CONFLICT (id) DO NOTHING`,
-                [
-                    user.id,
-                    user.emailAddresses[0]?.emailAddress || "",
-                    user.firstName || null,
-                    user.lastName || null,
-                    user.imageUrl || null,
-                    "clerk",
-                    "free",
-                    false,
-                ]
-            )
-            // Redirect to onboarding for new users
-            redirect("/onboarding")
-        } else if (!result.rows[0].onboarding_completed) {
-            redirect("/onboarding")
+            const client = await pool.connect()
+            try {
+                await client.query('BEGIN')
+                
+                // Insert or update user
+                const userResult = await client.query(
+                    `INSERT INTO users (
+                        id, email, first_name, last_name, image_url, 
+                        auth_provider, subscription_tier, onboarding_completed
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    ON CONFLICT (id) DO UPDATE SET
+                        email = EXCLUDED.email,
+                        first_name = EXCLUDED.first_name,
+                        last_name = EXCLUDED.last_name,
+                        image_url = EXCLUDED.image_url,
+                        updated_at = NOW()
+                    RETURNING id, (xmax = 0) AS inserted`,
+                    [
+                        user.id,
+                        user.emailAddresses[0]?.emailAddress || "",
+                        user.firstName || null,
+                        user.lastName || null,
+                        user.imageUrl || null,
+                        "clerk",
+                        "free",
+                        true,
+                    ]
+                )
+
+                // Grant 30 credits only if this is a new insert
+                if (userResult.rows[0]?.inserted) {
+                    await client.query(
+                        `INSERT INTO credits_ledger (company_id, tokens, reason)
+                         VALUES ($1, $2, $3)`,
+                        [user.id, 30, 'initial_signup_bonus']
+                    )
+
+                    await client.query(
+                        `INSERT INTO credits_balance (company_id, balance, updated_at)
+                         VALUES ($1, $2, NOW())
+                         ON CONFLICT (company_id) 
+                         DO UPDATE SET 
+                           balance = credits_balance.balance + 30,
+                           updated_at = NOW()`,
+                        [user.id, 30]
+                    )
+                }
+
+                await client.query('COMMIT')
+            } catch (err) {
+                await client.query('ROLLBACK')
+                console.error("Error creating user:", err)
+            } finally {
+                client.release()
+            }
         }
     } catch (error) {
-        console.error("Error checking onboarding status:", error)
-        // On error, redirect to onboarding to be safe
-        redirect("/onboarding")
+        console.error("Error syncing user to database:", error)
     }
 
     return (
