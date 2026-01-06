@@ -14,10 +14,10 @@ export function SiteHeader() {
                 </div>
                 <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
                     <nav className="flex items-center space-x-6 text-sm font-medium">
-                        <Link href="#features" className="transition-colors hover:text-foreground/80 text-foreground/60">Features</Link>
-                        <Link href="/pricing" className="transition-colors hover:text-foreground/80 text-foreground/60">Pricing</Link>
-                        <Link href="/astrology" className="transition-colors hover:text-foreground/80 text-foreground/60">Astrology</Link>
-                        <Link href="#how-it-works" className="transition-colors hover:text-foreground/80 text-foreground/60">How It Works</Link>
+                        <Link href="/#features" className="transition-colors hover:text-foreground/80 text-foreground/60">Features</Link>
+                        <Link href="/#pricing" className="transition-colors hover:text-foreground/80 text-foreground/60 scroll-smooth">Pricing</Link>
+                        <Link href="/#astrology" className="transition-colors hover:text-foreground/80 text-foreground/60 scroll-smooth">Astrology</Link>
+                        <Link href="/#how-it-works" className="transition-colors hover:text-foreground/80 text-foreground/60">How It Works</Link>
                     </nav>
                     <div className="flex items-center space-x-4">
                         <LanguageSwitcher />

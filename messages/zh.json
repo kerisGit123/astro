@@ -110,7 +110,8 @@
     "wealth": "财富",
     "career": "事业",
     "relationship": "关系",
-    "health": "健康"
+    "health": "健康",
+    "analysisFocus": "分析焦点"
   },
   "settings": {
     "title": "设置",
@@ -631,12 +632,96 @@
       "reason5Desc": "您的个人信息和出生数据经过加密并安全存储。我们绝不分享您的数据。",
       "reason6Title": "综合报告",
       "reason6Desc": "可下载、打印和分享的详细PDF报告。随时跟踪您的命运之旅。"
+    }
+  },
+  "cta": {
+    "title": "准备好理解您的道路了吗？",
+    "description": "加入数千名今天发现自己命运结构和时机的用户。",
+    "getStarted": "创建我的命运档案",
+    "learnMore": "查看定价计划"
+  },
+  "pricing": {
+    "title": "简单透明的定价方案",
+    "subtitle": "选择适合您命运之旅的计划。"
+  },
+  "hero": {
+    "badge": "v1.0 现已上线",
+    "badgeSubtext": "- 开始您的旅程",
+    "title": "您的命运。",
+    "titleHighlight": "清晰解读。",
+    "subtitle": "现代融合紫微斗數、西方占星术和中国生肖。",
+    "subtitle2": "解锁事业、爱情和时机的可行洞察。",
+    "ctaPrimary": "获取免费概览",
+    "ctaSecondary": "查看定价"
+  },
+  "whyChoose": {
+    "title": "为什么结合多个系统？",
+    "subtitle": "我们整合古老智慧，消除单一方法解读的盲点。",
+    "ziwei": {
+      "title": "紫微斗數",
+      "description": "审视您的生命结构和时机。它是您潜力的地图和机遇的时钟。"
     },
-    "cta": {
-      "title": "准备好探索您的命运了吗？",
-      "description": "加入数千名已经通过紫微之路解锁人生潜力的用户。立即开始您的AI驱动命理平台之旅。",
-      "getStarted": "免费开始",
-      "learnMore": "了解命理系统"
+    "western": {
+      "title": "西方星座",
+      "description": "解释您的行为和心理。了解您的驱动力、性格特征和情感需求。"
+    },
+    "chinese": {
+      "title": "中国生肖",
+      "description": "显示周期和兼容性。揭示潜在的元素平衡和关系和谐。"
+    }
+  },
+  "coreFeatures": {
+    "title": "您需要了解的一切",
+    "subtitle": "全面清晰地了解您生活的每个方面。",
+    "features": {
+      "0": {
+        "title": "生命命运解读",
+        "description": "了解您的整体人生方向和潜力。"
+      },
+      "1": {
+        "title": "爱情与婚姻",
+        "description": "详细分析关系运势和伴侣契合度。"
+      },
+      "2": {
+        "title": "事业与财富",
+        "description": "预测财务趋势和最佳职业道路。"
+      },
+      "3": {
+        "title": "时机与机遇",
+        "description": "准确知道何时行动，何时等待。"
+      },
+      "4": {
+        "title": "兼容性检测器",
+        "description": "检查与朋友、伴侣或同事的和谐度。"
+      },
+      "5": {
+        "title": "商业伙伴评估",
+        "description": "评估专业协同效应和潜在风险。"
+      },
+      "6": {
+        "title": "性格分析",
+        "description": "深入了解您的行为模式。"
+      },
+      "7": {
+        "title": "风险与警告系统",
+        "description": "提醒即将到来的挑战或冲突。"
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "如何运作",
+    "subtitle": "通过3个简单步骤获得清晰答案。",
+    "step1": {
+      "title": "输入出生详情",
+      "description": "提供您的出生日期、时间和地点。我们通过加密保护您的隐私。"
+    },
+    "step2": {
+      "title": "AI分析",
+      "description": "我们的多系统引擎即时计算您的紫微、西方和中国命盘。"
+    },
+    "step3": {
+      "title": "获取洞察",
+      "description": "获得清晰、可操作的仪表板，解释您的命运和时机。"
     }
   }
 }

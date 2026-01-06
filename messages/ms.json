@@ -107,7 +107,8 @@
     "wealth": "Kekayaan",
     "career": "Kerjaya",
     "relationship": "Hubungan",
-    "health": "Kesihatan"
+    "health": "Kesihatan",
+    "analysisFocus": "Fokus Analisis"
   },
   "settings": {
     "title": "Tetapan",
@@ -529,5 +530,9 @@
       "western": "menerangkan personaliti pemandu.",
       "chinese": "seperti lambang di kereta."
     }
+  },
+  "pricing": {
+    "title": "Harga Mudah untuk Takdir Anda",
+    "subtitle": "Pilih pelan yang sesuai dengan perjalanan anda."
   }
 }

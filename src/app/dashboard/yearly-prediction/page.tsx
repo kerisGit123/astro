@@ -109,21 +109,59 @@ export default function YearlyPredictionPage() {
       })
 
       if (res.ok) {
-        await res.json()
+        const data = await res.json()
         toast.success('Your yearly prediction is being generated. Please wait...')
         
-        // Refresh predictions list
-        setTimeout(() => {
-          fetchPredictions()
-        }, 2000)
+        // Poll for report completion
+        if (data.predictionId) {
+          const checkReportStatus = async () => {
+            try {
+              const statusRes = await fetch(`/api/predictions/${data.predictionId}`)
+              if (statusRes.ok) {
+                const prediction = await statusRes.json()
+                
+                // Check if report is completed AND has viewable data
+                if (prediction.result_data?.status === 'completed' && 
+                    prediction.result_data?.analysis) {
+                  setLoading(false)
+                  router.push(`/dashboard/prediction-report?id=${data.predictionId}`)
+                  return true
+                }
+              }
+              return false
+            } catch (err) {
+              console.error('Error checking status:', err)
+              return false
+            }
+          }
+
+          // Poll every 2 seconds for up to 10 seconds
+          const maxAttempts = 5
+          let attempts = 0
+          const pollInterval = setInterval(async () => {
+            attempts++
+            const isComplete = await checkReportStatus()
+            if (isComplete || attempts >= maxAttempts) {
+              clearInterval(pollInterval)
+              if (!isComplete) {
+                setLoading(false)
+                await fetchPredictions()
+                toast.info('Analysis is still processing. Please check back in a moment.')
+              }
+            }
+          }, 2000)
+        } else {
+          setLoading(false)
+          await fetchPredictions()
+        }
       } else {
         const error = await res.json()
         toast.error(error.error || 'Failed to start analysis')
+        setLoading(false)
       }
     } catch (error) {
       console.error('Error:', error)
       toast.error('Failed to start analysis')
-    } finally {
       setLoading(false)
     }
   }

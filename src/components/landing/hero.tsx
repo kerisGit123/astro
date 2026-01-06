@@ -1,8 +1,13 @@
+'use client'
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { useTranslations } from 'next-intl'
 
 export function Hero() {
+    const t = useTranslations('hero')
+    
     return (
         <section className="relative overflow-hidden pt-24 md:pt-32 lg:pt-40 pb-24">
             {/* Background Pattern */}
@@ -17,30 +22,30 @@ export function Hero() {
             <div className="container px-4 md:px-6 mx-auto flex flex-col items-center text-center space-y-10">
                 <div className="space-y-6 max-w-4xl relative">
                     <div className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary ring-offset-background transition-colors hover:bg-primary/20 mb-4">
-                        <span className="font-semibold px-1">v1.0 Now Live</span>
-                        <span className="ml-1 text-muted-foreground">- Start your journey</span>
+                        <span className="font-semibold px-1">{t('badge')}</span>
+                        <span className="ml-1 text-muted-foreground">{t('badgeSubtext')}</span>
                     </div>
 
                     <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-primary/50 drop-shadow-sm">
-                        Your Destiny. <br className="hidden sm:block" />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-400 to-primary">Clearly Explained.</span>
+                        {t('title')} <br className="hidden sm:block" />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-400 to-primary">{t('titleHighlight')}</span>
                     </h1>
 
                     <p className="mx-auto max-w-[800px] text-lg text-muted-foreground/80 sm:text-xl md:text-2xl font-light leading-relaxed">
-                        A modern fusion of <span className="text-foreground font-medium">紫微斗數</span>, <span className="text-foreground font-medium">Western Astrology</span> & <span className="text-foreground font-medium">Chinese Zodiac</span>.
-                        <br />Unlock actionable insights for career, love, and timing.
+                        {t('subtitle')}
+                        <br />{t('subtitle2')}
                     </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-5 w-full justify-center px-4">
                     <Link href="/signup">
                         <Button size="lg" className="h-14 px-10 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_40px_-10px_rgba(124,58,237,0.5)] transition-all hover:scale-105 rounded-full">
-                            Get Your Free Overview
+                            {t('ctaPrimary')}
                         </Button>
                     </Link>
                     <Link href="/pricing">
                         <Button variant="outline" size="lg" className="h-14 px-10 text-lg border-white/10 hover:bg-white/5 hover:text-white rounded-full bg-transparent backdrop-blur-sm">
-                            View Pricing
+                            {t('ctaSecondary')}
                         </Button>
                     </Link>
                 </div>

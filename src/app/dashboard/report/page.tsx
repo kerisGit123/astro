@@ -316,7 +316,7 @@ export default function ReportPage() {
           <p className="text-muted-foreground">
             {personName && <span className="font-semibold">{personName}</span>}
             {personName && ' • '}
-            Generated on {new Date(analysis.analyzed_at).toLocaleDateString()}
+            Generated on {new Date(analysis.analyzed_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </p>
         </div>
         <div className="flex gap-2">

@@ -559,7 +559,7 @@ export default function PeoplePage() {
                             </Badge>
                           )}
                         </CardTitle>
-                        <CardDescription>Born: {new Date(person.birth_date).toLocaleDateString()}</CardDescription>
+                        <CardDescription>Born: {new Date(person.birth_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</CardDescription>
                       </div>
                       <div className="flex gap-2">
                         {person.is_active === false && (
@@ -652,7 +652,7 @@ export default function PeoplePage() {
                                 </Badge>
                               )}
                             </CardTitle>
-                            <CardDescription>Born: {new Date(person.birth_date).toLocaleDateString()}</CardDescription>
+                            <CardDescription>Born: {new Date(person.birth_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</CardDescription>
                           </div>
                           <Badge variant="outline" className={getRelationshipColor(person.relationship_type)}>
                             <span className="flex items-center gap-1">

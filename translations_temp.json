@@ -1,0 +1,72 @@
+{
+  "whyChoose": {
+    "title": "Why Combine Systems?",
+    "subtitle": "We integrate ancient wisdom to remove the blind spots of single-method readings.",
+    "ziwei": {
+      "title": "紫微斗數 (Zi Wei Dou Shu)",
+      "description": "Reviews your life structure & timing. It acts as the map of your potential and the clock of your opportunities."
+    },
+    "western": {
+      "title": "Western Zodiac",
+      "description": "Explains your behavior & psychology. Understand your drives, personality traits, and emotional needs."
+    },
+    "chinese": {
+      "title": "Chinese Zodiac",
+      "description": "Shows cycles & compatibility. Reveals the underlying elemental balance and relationship harmony."
+    }
+  },
+  "coreFeatures": {
+    "title": "Everything You Need to Know",
+    "subtitle": "Complete clarity on every aspect of your life.",
+    "features": {
+      "0": {
+        "title": "Life Destiny Reader",
+        "description": "Understand your overall life direction and potential."
+      },
+      "1": {
+        "title": "Love & Marriage",
+        "description": "Detailed analysis of relationship luck and partner fit."
+      },
+      "2": {
+        "title": "Career & Wealth",
+        "description": "Forecast financial trends and best career paths."
+      },
+      "3": {
+        "title": "Timing & Opportunities",
+        "description": "Know exactly when to act and when to wait."
+      },
+      "4": {
+        "title": "Compatibility Detector",
+        "description": "Check harmony with friends, partners, or colleagues."
+      },
+      "5": {
+        "title": "Business Partner Eval",
+        "description": "Assess professional synergy and potential risks."
+      },
+      "6": {
+        "title": "Personality Profiler",
+        "description": "Deep dive into your behavioral patterns."
+      },
+      "7": {
+        "title": "Risk & Warning System",
+        "description": "Alerts for upcoming challenges or conflicts."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Your path to clarity in 3 simple steps.",
+    "step1": {
+      "title": "Enter Birth Details",
+      "description": "Provide your birth date, time, and location. We protect your privacy with encryption."
+    },
+    "step2": {
+      "title": "AI Analysis",
+      "description": "Our multi-system engine calculates your Zi Wei, Western, and Chinese charts instantly."
+    },
+    "step3": {
+      "title": "Get Insights",
+      "description": "Receive a clear, actionable dashboard explaining your destiny and timing."
+    }
+  }
+}

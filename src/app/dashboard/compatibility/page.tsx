@@ -265,13 +265,52 @@ export default function CompatibilityPage() {
         return
       }
 
-      alert("Analysis started! Results will be available shortly.")
-      fetchAnalyses()
+      alert("Analysis started! This may take a few minutes.")
       
-      setTimeout(() => {
+      // Poll for report completion
+      if (data.analysisId) {
+        const checkReportStatus = async () => {
+          try {
+            const statusRes = await fetch(`/api/compatibility/${data.analysisId}`)
+            if (statusRes.ok) {
+              const analysis = await statusRes.json()
+              
+              // Check if report is completed AND has viewable data
+              if (analysis.result_data?.status === 'completed' && 
+                  analysis.result_data?.compatibility) {
+                setAnalyzing(false)
+                router.push(`/dashboard/compatibility-report?id=${data.analysisId}`)
+                return true
+              }
+            }
+            return false
+          } catch (err) {
+            console.error('Error checking status:', err)
+            return false
+          }
+        }
+
+        // Poll every 2 seconds for up to 10 seconds
+        const maxAttempts = 5
+        let attempts = 0
+        const pollInterval = setInterval(async () => {
+          attempts++
+          const isComplete = await checkReportStatus()
+          if (isComplete || attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            if (!isComplete) {
+              setAnalyzing(false)
+              await fetchAnalyses()
+              setSelectedPerson("")
+              alert('Analysis is still processing. Please check back in a moment.')
+            }
+          }
+        }, 2000)
+      } else {
         setAnalyzing(false)
+        await fetchAnalyses()
         setSelectedPerson("")
-      }, 2000)
+      }
 
     } catch (error) {
       console.error("Error analyzing compatibility:", error)
@@ -418,6 +457,7 @@ export default function CompatibilityPage() {
   return (
     <>
       <ZodiacProgress isLoading={analyzing} message={getCompatibilityMessage()} />
+      {!analyzing && (
       <div className="container mx-auto py-8 px-4 max-w-7xl">
       {/* Header with Type Selector */}
       <div className="flex items-start justify-between">
@@ -573,6 +613,7 @@ export default function CompatibilityPage() {
         </Card>
       )}
       </div>
+      )}
     </>
   )
 }

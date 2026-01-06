@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 
 const zodiacAnimals = ['🐭', '🐮', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷']
-const MINIMUM_DISPLAY_TIME = 10000 // 10 seconds
+const MINIMUM_DISPLAY_TIME = 30000 // 30 seconds
 
 interface ZodiacProgressProps {
   isLoading: boolean
@@ -13,6 +13,7 @@ interface ZodiacProgressProps {
 export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacProgressProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
+  const [percentage, setPercentage] = useState(0)
   const startTimeRef = useRef<number | null>(null)
 
   // Handle showing the animation
@@ -45,6 +46,22 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % zodiacAnimals.length)
     }, 300)
+
+    return () => clearInterval(interval)
+  }, [isVisible])
+
+  // Update percentage based on elapsed time
+  useEffect(() => {
+    if (!isVisible || !startTimeRef.current) return
+
+    const updatePercentage = () => {
+      const elapsed = Date.now() - startTimeRef.current!
+      const progress = Math.min(100, Math.floor((elapsed / MINIMUM_DISPLAY_TIME) * 100))
+      setPercentage(progress)
+    }
+
+    updatePercentage()
+    const interval = setInterval(updatePercentage, 100)
 
     return () => clearInterval(interval)
   }, [isVisible])
@@ -107,6 +124,9 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
           </p>
           <p className="text-sm text-muted-foreground">
             Please wait while we analyze your destiny...
+          </p>
+          <p className="text-2xl font-bold text-primary mt-4">
+            {percentage}%
           </p>
         </div>
       </div>

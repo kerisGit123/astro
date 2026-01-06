@@ -189,16 +189,52 @@ export default function LoveCompatibilityPage() {
       console.log("Compatibility analysis triggered:", data)
       
       // Show success message
-      alert("Compatibility analysis started! This may take a few minutes. Results will be saved and you can check back later.")
+      alert("Compatibility analysis started! This may take a few minutes.")
       
-      // Refresh analyses list
-      fetchAnalyses()
-      
-      // Keep analyzing state for a moment then clear
-      setTimeout(() => {
+      // Poll for report completion
+      if (data.analysisId) {
+        const checkReportStatus = async () => {
+          try {
+            const statusRes = await fetch(`/api/compatibility/${data.analysisId}`)
+            if (statusRes.ok) {
+              const analysis = await statusRes.json()
+              
+              // Check if report is completed AND has viewable data
+              if (analysis.result_data?.status === 'completed' && 
+                  analysis.result_data?.compatibility) {
+                setAnalyzing(false)
+                router.push(`/dashboard/compatibility-report?id=${data.analysisId}`)
+                return true
+              }
+            }
+            return false
+          } catch (err) {
+            console.error('Error checking status:', err)
+            return false
+          }
+        }
+
+        // Poll every 2 seconds for up to 10 seconds
+        const maxAttempts = 5
+        let attempts = 0
+        const pollInterval = setInterval(async () => {
+          attempts++
+          const isComplete = await checkReportStatus()
+          if (isComplete || attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            if (!isComplete) {
+              setAnalyzing(false)
+              await fetchAnalyses()
+              setSelectedPerson("")
+              alert('Analysis is still processing. Please check back in a moment.')
+            }
+          }
+        }, 2000)
+      } else {
         setAnalyzing(false)
+        await fetchAnalyses()
         setSelectedPerson("")
-      }, 2000)
+      }
 
     } catch (error) {
       console.error("Error analyzing compatibility:", error)
@@ -220,6 +256,7 @@ export default function LoveCompatibilityPage() {
   return (
     <>
       <ZodiacProgress isLoading={analyzing} message="Analyzing love compatibility... 💕" />
+      {!analyzing && (
       <div className="space-y-6 p-6 max-w-4xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold">Love & Compatibility Analysis</h1>
@@ -373,6 +410,7 @@ export default function LoveCompatibilityPage() {
         </Card>
       )}
       </div>
+      )}
     </>
   )
 }
