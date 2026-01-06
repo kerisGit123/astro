@@ -3,14 +3,14 @@
 import { useEffect, useState, useRef } from 'react'
 
 const zodiacAnimals = ['🐭', '🐮', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷']
-const MINIMUM_DISPLAY_TIME = 30000 // 30 seconds
 
 interface ZodiacProgressProps {
   isLoading: boolean
   message?: string
+  duration?: number // Duration in milliseconds, defaults to 25000ms (25 seconds)
 }
 
-export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacProgressProps) {
+export function ZodiacProgress({ isLoading, message = 'Analyzing...', duration = 25000 }: ZodiacProgressProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [percentage, setPercentage] = useState(0)
@@ -28,7 +28,7 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
   useEffect(() => {
     if (!isLoading && isVisible && startTimeRef.current) {
       const elapsed = Date.now() - startTimeRef.current
-      const remaining = Math.max(0, MINIMUM_DISPLAY_TIME - elapsed)
+      const remaining = Math.max(0, duration - elapsed)
       
       const timer = setTimeout(() => {
         setIsVisible(false)
@@ -37,7 +37,7 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
 
       return () => clearTimeout(timer)
     }
-  }, [isLoading, isVisible])
+  }, [isLoading, isVisible, duration])
 
   // Animate zodiac rotation
   useEffect(() => {
@@ -56,7 +56,7 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
 
     const updatePercentage = () => {
       const elapsed = Date.now() - startTimeRef.current!
-      const progress = Math.min(100, Math.floor((elapsed / MINIMUM_DISPLAY_TIME) * 100))
+      const progress = Math.min(100, Math.floor((elapsed / duration) * 100))
       setPercentage(progress)
     }
 
@@ -64,7 +64,7 @@ export function ZodiacProgress({ isLoading, message = 'Analyzing...' }: ZodiacPr
     const interval = setInterval(updatePercentage, 100)
 
     return () => clearInterval(interval)
-  }, [isVisible])
+  }, [isVisible, duration])
 
   if (!isVisible) return null
 

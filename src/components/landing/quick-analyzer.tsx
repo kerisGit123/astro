@@ -110,7 +110,7 @@ export function QuickAnalyzer() {
 
   return (
     <>
-      <ZodiacProgress isLoading={analyzing} message={`${t('analyzing')} ✨`} />
+      <ZodiacProgress isLoading={analyzing} message={`${t('analyzing')} ✨`} duration={5000} />
       {!analyzing && (
         <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
           <div className="container mx-auto max-w-4xl">
